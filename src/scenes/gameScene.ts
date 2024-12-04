@@ -17,7 +17,7 @@ export default class GameScene extends Phaser.Scene {
     generator.map.forEach((row, y) => {
       row.forEach((tile, x) => {
         if (tile === 1) {
-          this.add.rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1, 0xdeadbeef);
+          this.add.rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1, 0x929292);
         }
       });
     })
