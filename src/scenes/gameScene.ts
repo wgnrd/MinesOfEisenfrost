@@ -11,6 +11,7 @@ export default class GameScene extends Phaser.Scene {
   }
 
   create() {
+    // TODO - make the room generator get the width and height from the scene
     const generator = new RoomGenerator(80, 60);
     generator.generateRooms(3);
     const TILE_SIZE = 10;
