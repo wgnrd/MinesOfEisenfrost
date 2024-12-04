@@ -12,7 +12,7 @@ export default class GameScene extends Phaser.Scene {
 
   create() {
     const generator = new RoomGenerator(80, 60);
-    generator.generateRooms(4);
+    generator.generateRooms(3);
     const TILE_SIZE = 10;
     generator.map.forEach((row, y) => {
       row.forEach((tile, x) => {

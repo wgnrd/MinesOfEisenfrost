@@ -49,10 +49,14 @@ class RoomGenerator {
   generateRooms(depth = 4) {
     const spaces = this.splitSpace(0, 0, this.width, this.height, depth)
     for (const space of spaces) {
-      const roomWidth = Math.floor(space.w * this.TAKEUP_WIDTH)
-      const roomHeight = Math.floor(space.h * this.TAKEUP_HEIGHT)
-      const roomX = space.x + Math.floor((space.w - roomWidth) / 2)
-      const roomY = space.y + Math.floor((space.h - roomHeight) / 2)
+
+      const roomWidth = Phaser.Math.Between(space.w / 2, space.w )
+      const roomHeight = Phaser.Math.Between(space.h / 2, space.h)
+
+      // Randomly place the room within the space
+     const roomY = Phaser.Math.Between(space.y, space.y + space.h - roomHeight)
+      const roomX = Phaser.Math.Between(space.x, space.x + space.w - roomWidth)
+
 
       for (let y = 0; y < roomHeight; y++) {
         for (let x = 0; x < roomWidth; x++) {
