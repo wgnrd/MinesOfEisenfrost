@@ -6,6 +6,7 @@ class RoomGenerator {
   private width: any;
   private height: any;
   map: any[][];
+  private previousRoomCenter: any = null;
 
   constructor(width: number, height: number) {
     this.width = width;
@@ -30,8 +31,8 @@ class RoomGenerator {
 
     // Ensure split remains valid (minimum room size of 3x3)
     if (
-      (horizontal && (split < 5 || w - split < 5)) ||
-      (!horizontal && (split < 5 || h - split < 5))
+      (horizontal && (split < 7 || w - split < 7)) ||
+      (!horizontal && (split < 7 || h - split < 7))
     ) {
       return [{ x, y, w, h }];
     }
@@ -54,11 +55,8 @@ class RoomGenerator {
     return [...first, ...second];
   }
 
-  generateHallways() {}
-
   generateRooms(depth = 4) {
     const spaces = this.splitSpace(0, 0, this.width, this.height, depth);
-    let previousRoomCenter = null;
 
     for (const space of spaces) {
       const roomWidth = Phaser.Math.Between(space.w / 2, space.w);
@@ -77,38 +75,45 @@ class RoomGenerator {
         }
       }
 
-      // Calculate the center of the current room
-      const currentRoomCenter = {
-        x: roomX + Math.floor(roomWidth / 2),
-        y: roomY + Math.floor(roomHeight / 2),
-      };
+      this.createHallways(roomX, roomWidth, roomY, roomHeight);
+    }
+  }
 
-      // Generate a hallway connecting the previous room to the current room
-      if (previousRoomCenter) {
-        // Create a horizontal hallway
-        for (
-          let x = Math.min(previousRoomCenter.x, currentRoomCenter.x);
-          x <= Math.max(previousRoomCenter.x, currentRoomCenter.x);
-          x++
-        ) {
-          this.map[previousRoomCenter.y][x] = 1;
-          this.map[previousRoomCenter.y + 1][x] = 1;
-        }
+  private createHallways(
+    roomX: number,
+    roomWidth: number,
+    roomY: number,
+    roomHeight: number
+  ) {
+    const currentRoomCenter = {
+      x: roomX + Math.floor(roomWidth / 2),
+      y: roomY + Math.floor(roomHeight / 2),
+    };
 
-        // Create a vertical hallway
-        for (
-          let y = Math.min(previousRoomCenter.y, currentRoomCenter.y);
-          y <= Math.max(previousRoomCenter.y, currentRoomCenter.y);
-          y++
-        ) {
-          this.map[y][currentRoomCenter.x] = 1;
-          this.map[y][currentRoomCenter.x + 1] = 1;
-        }
+    // Generate a hallway connecting the previous room to the current room
+    if (this.previousRoomCenter) {
+      // Create a horizontal hallway
+      for (
+        let x = Math.min(this.previousRoomCenter.x, currentRoomCenter.x);
+        x <= Math.max(this.previousRoomCenter.x, currentRoomCenter.x);
+        x++
+      ) {
+        this.map[this.previousRoomCenter.y][x] = 1;
+        this.map[this.previousRoomCenter.y + 1][x] = 1;
       }
 
-      // Update the previous room center
-      previousRoomCenter = currentRoomCenter;
+      // Create a vertical hallway
+      for (
+        let y = Math.min(this.previousRoomCenter.y, currentRoomCenter.y);
+        y <= Math.max(this.previousRoomCenter.y, currentRoomCenter.y);
+        y++
+      ) {
+        this.map[y][currentRoomCenter.x] = 1;
+        this.map[y][currentRoomCenter.x + 1] = 1;
+      }
     }
+
+    this.previousRoomCenter = currentRoomCenter;
   }
 }
 
