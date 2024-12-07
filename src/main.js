@@ -4,8 +4,8 @@ import GameScene from './scenes/gameScene';
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: 810,
+  height: 610,
   scene: [GameScene], // Add your GameScene here
   pixelArt: true, // Maintain pixelation
   physics: {
