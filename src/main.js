@@ -4,9 +4,8 @@ import GameScene from './scenes/gameScene';
 
 const config = {
   type: Phaser.AUTO,
-  // TODO - Change the width and height based on the screen
-  width: 800,
-  height: 600,
+  width: 810,
+  height: 610,
   scene: [GameScene], // Add your GameScene here
   pixelArt: true, // Maintain pixelation
   physics: {

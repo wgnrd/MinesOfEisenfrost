@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import RoomGenerator from '../utils/roomGenerator'
+import RoomGenerator from '../utils/roomGenerator';
 
 export default class GameScene extends Phaser.Scene {
   constructor() {
@@ -18,10 +18,16 @@ export default class GameScene extends Phaser.Scene {
     generator.map.forEach((row, y) => {
       row.forEach((tile, x) => {
         if (tile === 1) {
-          this.add.rectangle(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE - 1, TILE_SIZE - 1, 0x929292);
+          this.add.rectangle(
+            x * TILE_SIZE + 10,
+            y * TILE_SIZE + 10,
+            TILE_SIZE - 2,
+            TILE_SIZE - 2,
+            0xdeadbeef
+          );
         }
       });
-    })
+    });
   }
 
   update() {
