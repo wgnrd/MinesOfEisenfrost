@@ -1,10 +1,9 @@
 import Phaser from 'phaser';
 
 class RoomGenerator {
-  private TAKEUP_WIDTH = 0.7;
-  private TAKEUP_HEIGHT = 0.7;
   private width: any;
   private height: any;
+  private roomOffset: number = 0.2;
   map: any[][];
   private previousRoomCenter: any = null;
 
@@ -24,12 +23,11 @@ class RoomGenerator {
     const horizontal = Math.random() < 0.5;
 
     // Random offset for the split, ensuring it doesn't go too close to the edges
-    const offset = Math.floor((horizontal ? w : h) * 0.3); // Maximum 30% offset
+    const offset = Math.floor((horizontal ? w : h) * this.roomOffset);
     const split = horizontal
-      ? Math.floor(w / 2) + Phaser.Math.Between(-offset, offset)
-      : Math.floor(h / 2) + Phaser.Math.Between(-offset, offset);
+      ? Math.floor(w / 2) + Phaser.Math.Between(-offset, 0)
+      : Math.floor(h / 2) + Phaser.Math.Between(-offset, 0);
 
-    // Ensure split remains valid (minimum room size of 3x3)
     if (
       (horizontal && (split < 7 || w - split < 7)) ||
       (!horizontal && (split < 7 || h - split < 7))
@@ -71,11 +69,27 @@ class RoomGenerator {
 
       for (let y = 0; y < roomHeight; y++) {
         for (let x = 0; x < roomWidth; x++) {
-          this.map[roomY + y][roomX + x] = 1; // Mark tiles as part of a room
+            this.map[roomY + y][roomX + x] = 1; // Mark tiles as part of a room
         }
       }
+      // this.createRoomWalls(roomY, roomHeight, roomX, roomWidth)
 
       this.createHallways(roomX, roomWidth, roomY, roomHeight);
+    }
+  }
+
+  private createRoomWalls(roomY: number, roomHeight: number, roomX: number, roomWidth: number) {
+    // Create walls around the room, but if one edge is against the map edge, don't create a wall there
+    for (let y = roomY - 1; y < roomY + roomHeight + 1; y++) {
+      for (let x = roomX - 1; x < roomX + roomWidth + 1; x++) {
+        if (y === roomY - 1 || y === roomY + roomHeight || x === roomX - 1 || x === roomX + roomWidth) {
+          if (y >= 0 && y < this.height && x >= 0 && x < this.width) {
+            if (this.map[y][x] === 0) {
+              this.map[y][x] = 2 // Mark tiles as walls
+            }
+          }
+        }
+      }
     }
   }
 
