@@ -2,19 +2,29 @@ import Phaser from "phaser";
 import { TILE_SIZE } from "../types/globalConstants";
 import Enemy from "./Enemy";
 import { move } from "./movements";
+import Logger from "./Logger";
 
 export class Player {
   public sprite: Phaser.Physics.Arcade.Sprite;
   public health: number = 100;
+  public maxHealth: number = 100;
+  private logger: Logger;
+  private turnCount: number = 0;
 
   constructor(sprite: Phaser.Physics.Arcade.Sprite) {
     this.sprite = sprite;
+    this.logger = Logger.getInstance();
   }
 
   takeDamage(amount: number) {
     this.health -= amount;
-    console.log(`Player took ${amount} damage. Health: ${this.health}`);
-    // TODO: Add visual feedback, death check, etc.
+    this.logger.log(`Player took ${amount} damage. Health: ${this.health}`);
+    if (this.health <= 0) {
+      this.logger.log("Player has been defeated!");
+      this.sprite.destroy();
+      // TODO: Add game over screen
+      this.sprite.scene.scene.start("GameOver");
+    }
   }
 
   async attack(enemy: Enemy) {
@@ -59,41 +69,42 @@ export class Player {
     const { up, left, upRight, right, downRight, downLeft, down, upLeft } =
       keys;
 
+    let logMessage = "";
     let dx = 0;
     let dy = 0;
 
     // Determine movement direction
     if (Phaser.Input.Keyboard.JustDown(left)) {
-      console.log("player moved left");
+      logMessage = "Player moved left";
       dx = -1;
     } else if (Phaser.Input.Keyboard.JustDown(right)) {
-      console.log("player moved right");
+      logMessage = "Player moved right";
       dx = 1;
     }
 
     if (Phaser.Input.Keyboard.JustDown(up)) {
-      console.log("player moved up");
+      logMessage = "Player moved up";
       dy = -1;
     } else if (Phaser.Input.Keyboard.JustDown(down)) {
-      console.log("player moved down");
+      logMessage = "Player moved down";
       dy = 1;
     }
 
     // Handle diagonal movements
     if (Phaser.Input.Keyboard.JustDown(upLeft)) {
-      console.log("player moved up left");
+      logMessage = "Player moved up left";
       dx = -1;
       dy = -1;
     } else if (Phaser.Input.Keyboard.JustDown(upRight)) {
-      console.log("player moved up right");
+      logMessage = "Player moved up right";
       dx = 1;
       dy = -1;
     } else if (Phaser.Input.Keyboard.JustDown(downLeft)) {
-      console.log("player moved down left");
+      logMessage = "Player moved down left";
       dx = -1;
       dy = 1;
     } else if (Phaser.Input.Keyboard.JustDown(downRight)) {
-      console.log("player moved down right");
+      logMessage = "Player moved down right";
       dx = 1;
       dy = 1;
     }
@@ -102,6 +113,10 @@ export class Player {
       return false;
     }
 
+    this.turnCount++;
+    if (this.turnCount % 20 === 0 && this.health < this.maxHealth) {
+      this.heal(this.maxHealth * 0.1);
+    }
     const targetX = this.sprite.x + dx * TILE_SIZE;
     const targetY = this.sprite.y + dy * TILE_SIZE;
 
@@ -116,6 +131,7 @@ export class Player {
     }
 
     // If no enemy, try to move
+    this.logger.log(logMessage);
     return move(
       this.sprite,
       map,
@@ -124,6 +140,15 @@ export class Player {
       enemies.map((enemy) => enemy.sprite)
     );
   };
+
+  heal(amount: number) {
+    if (this.health + amount > this.maxHealth) {
+      this.health = this.maxHealth;
+    } else {
+      this.health += amount;
+    }
+    this.logger.log(`Player healed. Health: ${this.health}`);
+  }
 }
 
 export default Player;

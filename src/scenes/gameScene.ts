@@ -1,12 +1,20 @@
 import Phaser from "phaser";
 import RoomGenerator from "../utils/roomGenerator";
-import { move, spawnPlayer } from "../utils/movements";
-import { TILE_SIZE } from "../types/globalConstants";
+import { spawnPlayer } from "../utils/movements";
+import {
+  GAME_HEIGHT,
+  GAME_WIDTH,
+  LOG_WIDTH,
+  TILE_SIZE,
+} from "../types/globalConstants";
 import { spawnEnemies } from "../utils/spawner";
 import Enemy from "../utils/Enemy";
 import Player from "../utils/Player";
+import Logger from "../utils/Logger";
 
 export default class GameScene extends Phaser.Scene {
+  private logger = Logger.getInstance();
+
   constructor() {
     super("GameScene");
   }
@@ -78,8 +86,23 @@ export default class GameScene extends Phaser.Scene {
     }) as Phaser.Types.Input.Keyboard.CursorKeys;
 
     // Center the camera on the player
-    this.cameras.main.startFollow(this.playerSprite);
-    this.cameras.main.setZoom(0.6); // Adjust the zoom level as needed
+    // this.cameras.main.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+
+    // Initialize logger in top-left corner, but not at the very edge
+    this.logger.initialize(this);
+    this.logger.log("Game started");
+
+    // Adjust camera follow with proper settings
+    if (this.player) {
+      this.cameras.main.startFollow(
+        this.player.sprite,
+        true,
+        0.08,
+        0.08,
+        -LOG_WIDTH / 2
+      );
+      this.cameras.main.setDeadzone(100, 100); // Optional: adds smoother camera movement
+    }
   }
 
   async update() {

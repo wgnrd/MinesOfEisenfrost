@@ -2,11 +2,13 @@ import Phaser from "phaser";
 import { TILE_SIZE } from "../types/globalConstants";
 import { move } from "./movements";
 import Player from "./Player";
+import Logger from "./Logger";
 
 class Enemy {
   sprite: Phaser.Physics.Arcade.Sprite;
   health: number;
   isDead: boolean = false;
+  logger: Logger;
 
   constructor(
     scene: Phaser.Scene,
@@ -20,6 +22,7 @@ class Enemy {
       .setOrigin(0)
       .setScale(TILE_SIZE / 32);
     this.health = health;
+    this.logger = Logger.getInstance();
   }
 
   isTileOccupied(x: number, y: number, enemies: Enemy[]): boolean {
@@ -117,11 +120,9 @@ class Enemy {
 
   takeDamage(damage: number) {
     this.health -= damage;
-    console.log(
-      `Enemy took ${damage} damage. Remaining health: ${this.health}`
-    );
+    this.logger.log(`Enemy took ${damage} damage. Health: ${this.health}`);
     if (this.health <= 0) {
-      console.log("Enemy has been defeated!");
+      this.logger.log("Enemy has been defeated!");
       this.isDead = true;
       this.sprite.destroy();
     }
