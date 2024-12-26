@@ -22,48 +22,62 @@ export const spawnPlayer = (map: any): { playerX: number, playerY: number } => {
 
 export const movePlayer = (
     map: any[][],
-    player: Phaser.Physics.Arcade.Sprite,
-    keys: Phaser.Types.Input.Keyboard.CursorKeys
-) => {
+    sprite: Phaser.Physics.Arcade.Sprite,
+    keys: Phaser.Types.Input.Keyboard.CursorKeys,
+    enemies: Phaser.Physics.Arcade.Sprite[]
+): boolean => {
   // @ts-ignore
   const { up, left, upRight, right, downRight, downLeft, down, upLeft } = keys
 
+  let moved = false
+
   if (Phaser.Input.Keyboard.JustDown(left)) {
-    move(player, map, -1, 0)
+    moved = move(sprite, map, -1, 0, enemies)
   } else if (Phaser.Input.Keyboard.JustDown(right)) {
-    move(player, map, 1, 0)
+    moved = move(sprite, map, 1, 0, enemies)
   }
 
   if (Phaser.Input.Keyboard.JustDown(up)) {
-    move(player, map, 0, -1)
+    moved = move(sprite, map, 0, -1, enemies)
   } else if (Phaser.Input.Keyboard.JustDown(down)) {
-    move(player, map, 0, 1)
+    moved = move(sprite, map, 0, 1, enemies)
   }
 
   if (Phaser.Input.Keyboard.JustDown(upLeft)) {
-    move(player, map, -1, -1)
+    moved = move(sprite, map, -1, -1, enemies)
   } else if (Phaser.Input.Keyboard.JustDown(upRight)) {
-    move(player, map, 1, -1)
+    moved = move(sprite, map, 1, -1, enemies)
   } else if (Phaser.Input.Keyboard.JustDown(downLeft)) {
-    move(player, map, -1, 1)
+    moved = move(sprite, map, -1, 1, enemies)
   } else if (Phaser.Input.Keyboard.JustDown(downRight)) {
-    move(player, map, 1, 1)
+    moved = move(sprite, map, 1, 1, enemies)
   }
+
+  return moved
 }
 
-const move = (
-    player: Phaser.Physics.Arcade.Sprite,
+export const move = (
+    sprite: Phaser.Physics.Arcade.Sprite,
     map: any,
     dx: number,
-    dy: number
-) => {
-  const newX = player.x + dx * TILE_SIZE
-  const newY = player.y + dy * TILE_SIZE
+    dy: number,
+    obstacles: Phaser.Physics.Arcade.Sprite[] = []
+): boolean => {
+  const newX = sprite.x + dx * TILE_SIZE
+  const newY = sprite.y + dy * TILE_SIZE
   const tileX = Math.floor(newX / TILE_SIZE)
   const tileY = Math.floor(newY / TILE_SIZE)
 
   if (map[tileY] && map[tileY][tileX] === 1) {
-    player.x = newX
-    player.y = newY
+    // check for obstacles
+    for (const obstacle of obstacles) {
+      if (Phaser.Math.Distance.Between(newX, newY, obstacle.x, obstacle.y) < TILE_SIZE) {
+        return false
+      }
+    }
+    sprite.x = newX
+    sprite.y = newY
+    return true
   }
+  return false
 }
