@@ -17,19 +17,44 @@ export class Player {
     // TODO: Add visual feedback, death check, etc.
   }
 
-  attack(enemy: Enemy) {
-    // TODO: for now, just deal somewhere between 3 and 8 damage
-    const damage = Math.floor(Math.random() * 6) + 3;
-    enemy.takeDamage(damage);
-    console.log("Player attacked enemy!");
-    // TODO: Add attack animation, sound effects, etc.
+  async attack(enemy: Enemy) {
+    // Store original position
+    const startX = this.sprite.x;
+    const startY = this.sprite.y;
+
+    // Calculate direction to enemy
+    const dx = enemy.sprite.x - startX;
+    const dy = enemy.sprite.y - startY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Normalize direction and calculate lunge position
+    const normalizedDx = (dx / distance) * (TILE_SIZE / 2);
+    const normalizedDy = (dy / distance) * (TILE_SIZE / 2);
+
+    // Perform the lunge animation
+    await new Promise<void>((resolve) => {
+      this.sprite.scene.tweens.add({
+        targets: this.sprite,
+        x: startX + normalizedDx,
+        y: startY + normalizedDy,
+        duration: 100,
+        yoyo: true,
+        ease: "Power1",
+        onComplete: () => {
+          // Deal damage after animation
+          const damage = Math.floor(Math.random() * 6) + 3;
+          enemy.takeDamage(damage);
+          resolve();
+        },
+      });
+    });
   }
 
-  handlePlayerTurn = (
+  handlePlayerTurn = async (
     map: any[][],
     keys: Phaser.Types.Input.Keyboard.CursorKeys,
     enemies: Enemy[]
-  ): boolean => {
+  ): Promise<boolean> => {
     // @ts-ignore
     const { up, left, upRight, right, downRight, downLeft, down, upLeft } =
       keys;
@@ -86,7 +111,7 @@ export class Player {
     );
 
     if (targetEnemy) {
-      this.attack(targetEnemy);
+      await this.attack(targetEnemy);
       return true;
     }
 

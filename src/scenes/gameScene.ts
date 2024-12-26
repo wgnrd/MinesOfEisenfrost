@@ -62,7 +62,7 @@ export default class GameScene extends Phaser.Scene {
     this.player = new Player(this.playerSprite);
     const enemyPositions = spawnEnemies(this.generator.map, 20);
     enemyPositions.forEach(({ enemyX, enemyY }) => {
-      const enemy = new Enemy(this, enemyX, enemyY, "lightenemy", 30);
+      const enemy = new Enemy(this, enemyX, enemyY, "lightenemy", 15);
       this.enemies.push(enemy);
     });
 
@@ -82,7 +82,7 @@ export default class GameScene extends Phaser.Scene {
     this.cameras.main.setZoom(0.6); // Adjust the zoom level as needed
   }
 
-  update() {
+  async update() {
     if (!this.player || !this.keys) {
       return;
     }
@@ -94,7 +94,7 @@ export default class GameScene extends Phaser.Scene {
 
     this.cleanUpDeadEnemies();
     // Handle enemy turns if player acted
-    if (playerActed) {
+    if (await playerActed) {
       this.enemies.forEach((enemy) => {
         enemy.updateEnemy(this.player!, this.generator.map, this.enemies);
       });

@@ -91,7 +91,7 @@ class Enemy {
     }
   }
 
-  updateEnemy(player: Player, map: any[][], enemies: Enemy[]) {
+  async updateEnemy(player: Player, map: any[][], enemies: Enemy[]) {
     const distance = Phaser.Math.Distance.Between(
       this.sprite.x,
       this.sprite.y,
@@ -108,7 +108,7 @@ class Enemy {
       const dy = playerY - currentY;
 
       if (Math.abs(dx) <= 1 && Math.abs(dy) <= 1) {
-        this.attack(player);
+        await this.attack(player);
       } else {
         this.moveTowards(player.sprite, map, enemies);
       }
@@ -127,12 +127,37 @@ class Enemy {
     }
   }
 
-  attack(player: Player) {
-    // TODO: for now, just deal somewhere between 3 and 8 damage
-    const damage = Math.floor(Math.random() * 6) + 3;
-    player.takeDamage(damage);
-    console.log("Enemy attacked player!");
-    // TODO: Add attack animation, sound effects, etc.
+  async attack(player: Player) {
+    // Store original position
+    const startX = this.sprite.x;
+    const startY = this.sprite.y;
+
+    // Calculate direction to player
+    const dx = player.sprite.x - startX;
+    const dy = player.sprite.y - startY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Normalize direction and calculate lunge position (move 1/2 tile towards target)
+    const normalizedDx = (dx / distance) * (TILE_SIZE / 2);
+    const normalizedDy = (dy / distance) * (TILE_SIZE / 2);
+
+    // Perform the lunge animation
+    await new Promise<void>((resolve) => {
+      this.sprite.scene.tweens.add({
+        targets: this.sprite,
+        x: startX + normalizedDx,
+        y: startY + normalizedDy,
+        duration: 100,
+        yoyo: true, // This makes it return to the starting position
+        ease: "Power1",
+        onComplete: () => {
+          // Deal damage after animation
+          const damage = Math.floor(Math.random() * 6) + 3;
+          player.takeDamage(damage);
+          resolve();
+        },
+      });
+    });
   }
 }
 
