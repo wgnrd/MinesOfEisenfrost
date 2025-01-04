@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { TILE_SIZE } from "../types/globalConstants";
-import { move } from "./movements";
+import { move } from "../utils/movements";
 import Player from "./Player";
-import Logger from "./Logger";
+import Logger from "../utils/Logger";
 
 class Enemy {
   sprite: Phaser.Physics.Arcade.Sprite;

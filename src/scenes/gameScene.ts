@@ -8,8 +8,8 @@ import {
   TILE_SIZE,
 } from "../types/globalConstants";
 import { spawnEnemies } from "../utils/spawner";
-import Enemy from "../utils/Enemy";
-import Player from "../utils/Player";
+import Enemy from "../entities/Enemy";
+import Player from "../entities/Player";
 import Logger from "../utils/Logger";
 
 export default class GameScene extends Phaser.Scene {
