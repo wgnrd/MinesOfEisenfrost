@@ -20,42 +20,6 @@ export const spawnPlayer = (map: any): { playerX: number, playerY: number } => {
   return { playerX, playerY }
 }
 
-export const movePlayer = (
-    map: any[][],
-    sprite: Phaser.Physics.Arcade.Sprite,
-    keys: Phaser.Types.Input.Keyboard.CursorKeys,
-    enemies: Phaser.Physics.Arcade.Sprite[]
-): boolean => {
-  // @ts-ignore
-  const { up, left, upRight, right, downRight, downLeft, down, upLeft } = keys
-
-  let moved = false
-
-  if (Phaser.Input.Keyboard.JustDown(left)) {
-    moved = move(sprite, map, -1, 0, enemies)
-  } else if (Phaser.Input.Keyboard.JustDown(right)) {
-    moved = move(sprite, map, 1, 0, enemies)
-  }
-
-  if (Phaser.Input.Keyboard.JustDown(up)) {
-    moved = move(sprite, map, 0, -1, enemies)
-  } else if (Phaser.Input.Keyboard.JustDown(down)) {
-    moved = move(sprite, map, 0, 1, enemies)
-  }
-
-  if (Phaser.Input.Keyboard.JustDown(upLeft)) {
-    moved = move(sprite, map, -1, -1, enemies)
-  } else if (Phaser.Input.Keyboard.JustDown(upRight)) {
-    moved = move(sprite, map, 1, -1, enemies)
-  } else if (Phaser.Input.Keyboard.JustDown(downLeft)) {
-    moved = move(sprite, map, -1, 1, enemies)
-  } else if (Phaser.Input.Keyboard.JustDown(downRight)) {
-    moved = move(sprite, map, 1, 1, enemies)
-  }
-
-  return moved
-}
-
 export const move = (
     sprite: Phaser.Physics.Arcade.Sprite,
     map: any,

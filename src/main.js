@@ -1,12 +1,14 @@
 import Phaser from 'phaser';
 
-import GameScene from './scenes/gameScene';
+import GameScene from "./scenes/gameScene";
+import GameOverScene from "./scenes/GameOverScene";
+import { GAME_WIDTH, LOG_WIDTH, GAME_HEIGHT } from "./types/globalConstants";
 
 const config = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 610,
-  scene: [GameScene], // Add your GameScene here
+  width: GAME_WIDTH,
+  height: GAME_HEIGHT,
+  scene: [GameScene, GameOverScene], // Add your GameScene here
   pixelArt: true, // Maintain pixelation
   physics: {
     default: 'arcade',
