@@ -6,7 +6,7 @@ import Logger from "../utils/Logger";
 
 export class Player {
   public sprite: Phaser.Physics.Arcade.Sprite;
-  public health: number = 100;
+  public health: number = 10;
   public maxHealth: number = 100;
   private logger: Logger;
   private turnCount: number = 0;
@@ -18,12 +18,25 @@ export class Player {
 
   takeDamage(amount: number) {
     this.health -= amount;
-    this.logger.log(`Player took ${amount} damage. Health: ${this.health}`);
+
     if (this.health <= 0) {
+      this.health = 0; // Ensure health doesn't go below 0
       this.logger.log("Player has been defeated!");
-      this.sprite.destroy();
-      // TODO: Add game over screen
-      this.sprite.scene.scene.start("GameOver");
+
+      // Stop all current scene activity
+      const currentScene = this.sprite.scene;
+      currentScene.physics.pause();
+
+      // Fade out effect
+      currentScene.cameras.main.fade(300, 0, 0, 0);
+
+      // Switch to game over scene after fade
+      currentScene.cameras.main.once("camerafadeoutcomplete", () => {
+        this.sprite.destroy();
+        currentScene.scene.start("GameOver");
+      });
+    } else {
+      this.logger.log(`Player took ${amount} damage. Health: ${this.health}`);
     }
   }
 

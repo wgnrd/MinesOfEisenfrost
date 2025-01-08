@@ -13,10 +13,11 @@ import Player from "../entities/Player";
 import Logger from "../utils/Logger";
 
 export default class GameScene extends Phaser.Scene {
-  private logger = Logger.getInstance();
+  private logger: Logger;
 
   constructor() {
     super("GameScene");
+    this.logger = Logger.getInstance();
   }
 
   playerSprite: Phaser.Physics.Arcade.Sprite | undefined;
@@ -89,7 +90,7 @@ export default class GameScene extends Phaser.Scene {
     // this.cameras.main.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
     // Initialize logger in top-left corner, but not at the very edge
-    this.logger.initialize(this);
+    this.logger.initialize(this, 9999);
     this.logger.log("Game started");
 
     // Adjust camera follow with proper settings
@@ -126,5 +127,9 @@ export default class GameScene extends Phaser.Scene {
 
   private cleanUpDeadEnemies() {
     this.enemies = this.enemies.filter((enemy) => !enemy.isDead);
+  }
+
+  shutdown() {
+    this.logger.destroy();
   }
 }

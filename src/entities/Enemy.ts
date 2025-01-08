@@ -120,11 +120,12 @@ class Enemy {
 
   takeDamage(damage: number) {
     this.health -= damage;
-    this.logger.log(`Enemy took ${damage} damage. Health: ${this.health}`);
     if (this.health <= 0) {
       this.logger.log("Enemy has been defeated!");
       this.isDead = true;
       this.sprite.destroy();
+    } else {
+      this.logger.log(`Enemy took ${damage} damage. Health: ${this.health}`);
     }
   }
 
