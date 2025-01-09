@@ -1,19 +1,75 @@
 import Phaser from "phaser";
-import { TILE_SIZE } from "../types/globalConstants";
+import { GAME_WIDTH, TILE_SIZE } from "../types/globalConstants";
 import Enemy from "./Enemy";
 import { move } from "../utils/movements";
 import Logger from "../utils/Logger";
 
 export class Player {
+  private healthBar: Phaser.GameObjects.Rectangle;
+  private healthBarBackground: Phaser.GameObjects.Rectangle;
+  private healthBarText: Phaser.GameObjects.Text;
   public sprite: Phaser.Physics.Arcade.Sprite;
-  public health: number = 10;
+  public health: number = 100;
   public maxHealth: number = 100;
   private logger: Logger;
   private turnCount: number = 0;
+  private readonly PADDING = 10;
+  private readonly HEALTH_BAR_HEIGHT = 15;
 
   constructor(sprite: Phaser.Physics.Arcade.Sprite) {
     this.sprite = sprite;
     this.logger = Logger.getInstance();
+
+    this.setupHealthBar();
+  }
+
+  private setupHealthBar() {
+    const scene = this.sprite.scene;
+
+    this.healthBarBackground = scene.add.rectangle(
+      this.PADDING,
+      this.PADDING,
+      GAME_WIDTH - this.PADDING * 2,
+      this.HEALTH_BAR_HEIGHT,
+      0x888888
+    );
+    this.healthBarBackground.setOrigin(0, 0);
+    this.healthBarBackground.setScrollFactor(0);
+
+    this.healthBar = scene.add.rectangle(
+      this.PADDING,
+      this.PADDING,
+      GAME_WIDTH - this.PADDING * 2,
+      this.HEALTH_BAR_HEIGHT,
+      0xff0000
+    );
+    this.healthBar.setOrigin(0, 0);
+    this.healthBar.setScrollFactor(0);
+    this.healthBarText = scene.add.text(
+      this.PADDING + 5,
+      this.PADDING + 2,
+      this.health.toString(),
+      {
+        color: "#ffffff",
+      }
+    );
+    this.healthBarText.setOrigin(0, 0);
+    this.healthBarText.setScrollFactor(0);
+    this.updateHealthBar();
+  }
+
+  private updateHealthBar() {
+    const healthPercentage = this.health / this.maxHealth;
+    const targetWidth = (GAME_WIDTH - this.PADDING * 2) * healthPercentage;
+
+    // Create a smooth tween animation for the health bar
+    this.sprite.scene.tweens.add({
+      targets: this.healthBar,
+      width: targetWidth,
+      duration: 100, // Animation duration in milliseconds
+      ease: "Power1", // Easing function - you can try different ones like 'Cubic', 'Quad', etc.
+    });
+    this.healthBarText.setText(`${this.health}/${this.maxHealth}`);
   }
 
   takeDamage(amount: number) {
@@ -36,8 +92,9 @@ export class Player {
         currentScene.scene.start("GameOver");
       });
     } else {
-      this.logger.log(`Player took ${amount} damage. Health: ${this.health}`);
+      this.logger.log(`Player took ${amount} damage.`);
     }
+    this.updateHealthBar();
   }
 
   async attack(enemy: Enemy) {
@@ -66,6 +123,7 @@ export class Player {
         onComplete: () => {
           // Deal damage after animation
           const damage = Math.floor(Math.random() * 6) + 3;
+          this.logger.log(`Player dealt ${damage} damage to enemy.`);
           enemy.takeDamage(damage);
           resolve();
         },
@@ -127,7 +185,7 @@ export class Player {
     }
 
     this.turnCount++;
-    if (this.turnCount % 20 === 0 && this.health < this.maxHealth) {
+    if (this.turnCount % 50 === 0 && this.health < this.maxHealth) {
       this.heal(this.maxHealth * 0.1);
     }
     const targetX = this.sprite.x + dx * TILE_SIZE;
@@ -160,7 +218,8 @@ export class Player {
     } else {
       this.health += amount;
     }
-    this.logger.log(`Player healed. Health: ${this.health}`);
+    this.logger.log(`Player healed for ${amount} health.`);
+    this.updateHealthBar();
   }
 }
 
