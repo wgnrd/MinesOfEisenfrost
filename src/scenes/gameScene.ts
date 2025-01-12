@@ -1,22 +1,27 @@
-import Phaser from "phaser";
-import RoomGenerator from "../utils/roomGenerator";
-import { spawnPlayer } from "../utils/movements";
+import Phaser from 'phaser';
+import RoomGenerator from '../utils/roomGenerator';
+import { spawnPlayer } from '../utils/movements';
 import {
   GAME_HEIGHT,
   GAME_WIDTH,
   LOG_WIDTH,
   TILE_SIZE,
-} from "../types/globalConstants";
-import { spawnEnemies } from "../utils/spawner";
-import Enemy from "../entities/Enemy";
-import Player from "../entities/Player";
-import Logger from "../utils/Logger";
+} from '../types/globalConstants';
+import { spawnEnemies } from '../utils/spawner';
+import Enemy from '../entities/Enemy';
+import Player from '../entities/Player';
+import Logger from '../utils/Logger';
+import floor from '../assets/floor.png';
+import wall from '../assets/wall.png';
+import door from '../assets/door.png';
+import player from '../assets/player.png';
+import lightenemy from '../assets/lightEnemy.png';
 
 export default class GameScene extends Phaser.Scene {
   private logger: Logger;
 
   constructor() {
-    super("GameScene");
+    super('GameScene');
     this.logger = Logger.getInstance();
   }
 
@@ -29,13 +34,13 @@ export default class GameScene extends Phaser.Scene {
 
   preload() {
     // Load room tiles
-    this.load.image("floor", "src/assets/floor.png");
-    this.load.image("wall", "src/assets/wall.png");
-    this.load.image("door", "src/assets/door.png");
+    this.load.image('floor', floor);
+    this.load.image('wall', wall);
+    this.load.image('door', door);
 
     // Load player sprite
-    this.load.image("player", "src/assets/player.png");
-    this.load.image("lightenemy", "src/assets/lightEnemy.png");
+    this.load.image('player', player);
+    this.load.image('lightenemy', lightenemy);
   }
 
   create() {
@@ -44,17 +49,17 @@ export default class GameScene extends Phaser.Scene {
       row.forEach((tile, x) => {
         if (tile === 1) {
           this.add
-            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, "floor")
+            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, 'floor')
             .setOrigin(0)
             .setScale(TILE_SIZE / 32);
         } else if (tile === 2) {
           this.add
-            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, "wall")
+            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, 'wall')
             .setOrigin(0)
             .setScale(TILE_SIZE / 32);
         } else if (tile === 3) {
           this.add
-            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, "door")
+            .image(x * TILE_SIZE + 5, y * TILE_SIZE + 5, 'door')
             .setOrigin(0)
             .setScale(TILE_SIZE / 32);
         }
@@ -64,14 +69,14 @@ export default class GameScene extends Phaser.Scene {
     let { playerX, playerY } = spawnPlayer(this.generator.map);
 
     this.playerSprite = this.physics.add
-      .sprite(playerX, playerY, "player")
+      .sprite(playerX, playerY, 'player')
       .setOrigin(0)
       .setScale(TILE_SIZE / 32);
 
     this.player = new Player(this.playerSprite);
     const enemyPositions = spawnEnemies(this.generator.map, 20);
     enemyPositions.forEach(({ enemyX, enemyY }) => {
-      const enemy = new Enemy(this, enemyX, enemyY, "lightenemy", 15);
+      const enemy = new Enemy(this, enemyX, enemyY, 'lightenemy', 15);
       this.enemies.push(enemy);
     });
 
@@ -91,7 +96,7 @@ export default class GameScene extends Phaser.Scene {
 
     // Initialize logger in top-left corner, but not at the very edge
     this.logger.initialize(this, 9999);
-    this.logger.log("Game started");
+    this.logger.log('Game started');
 
     // Adjust camera follow with proper settings
     if (this.player) {
