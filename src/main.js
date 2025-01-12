@@ -1,8 +1,8 @@
-import Phaser from 'phaser';
+import Phaser, { Loader } from 'phaser';
 
-import GameScene from "./scenes/gameScene";
-import GameOverScene from "./scenes/GameOverScene";
-import { GAME_WIDTH, LOG_WIDTH, GAME_HEIGHT } from "./types/globalConstants";
+import GameScene from './scenes/gameScene';
+import GameOverScene from './scenes/GameOverScene';
+import { GAME_WIDTH, GAME_HEIGHT } from './types/globalConstants';
 
 const config = {
   type: Phaser.AUTO,
