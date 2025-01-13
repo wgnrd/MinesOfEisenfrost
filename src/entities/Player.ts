@@ -3,6 +3,8 @@ import { GAME_WIDTH, TILE_SIZE } from "../types/globalConstants";
 import Enemy from "./Enemy";
 import { move } from "../utils/movements";
 import Logger from "../utils/Logger";
+import { EquipmentItem, EquippedItems } from "../types/Equipment";
+import { playerEquipped } from "../utils/defaultEquippment";
 
 export class Player {
   private healthBar: Phaser.GameObjects.Rectangle;
@@ -15,6 +17,9 @@ export class Player {
   private turnCount: number = 0;
   private readonly PADDING = 10;
   private readonly HEALTH_BAR_HEIGHT = 15;
+
+  private equipped: EquippedItems = playerEquipped;
+  private inventory: EquipmentItem[] = [];
 
   constructor(sprite: Phaser.Physics.Arcade.Sprite) {
     this.sprite = sprite;
@@ -73,7 +78,13 @@ export class Player {
   }
 
   takeDamage(amount: number) {
-    this.health -= amount;
+    const armorDefense = this.equipped.armor?.defense || 0;
+    const bootsDefense = this.equipped.boots?.defense || 0;
+    const ringDefense = this.equipped.ring?.defense || 0;
+    const totalDefense = armorDefense + bootsDefense + ringDefense;
+    const totalDamage = Math.max(0, amount - totalDefense);
+
+    this.health -= totalDamage;
 
     if (this.health <= 0) {
       this.health = 0; // Ensure health doesn't go below 0
@@ -92,7 +103,7 @@ export class Player {
         currentScene.scene.start("GameOver");
       });
     } else {
-      this.logger.log(`Player took ${amount} damage.`);
+      this.logger.log(`Player took ${totalDamage} damage.`);
     }
     this.updateHealthBar();
   }
@@ -220,6 +231,18 @@ export class Player {
     }
     this.logger.log(`Player healed for ${amount} health.`);
     this.updateHealthBar();
+  }
+
+  getInventory() {
+    return {
+      inventory: this.inventory,
+      equipped: this.equipped
+    }
+  }
+
+  setInventory(data: { inventory: EquipmentItem[], equipped: EquippedItems }) {
+    this.inventory = data.inventory;
+    this.equipped = data.equipped;
   }
 }
 
