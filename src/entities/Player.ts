@@ -16,7 +16,7 @@ export class Player {
   private logger: Logger;
   private turnCount: number = 0;
   private readonly PADDING = 10;
-  private readonly HEALTH_BAR_HEIGHT = 15;
+  private readonly HEALTH_BAR_HEIGHT = 20;
 
   private equipped: EquippedItems = playerEquipped;
   private inventory: EquipmentItem[] = [];
@@ -42,20 +42,21 @@ export class Player {
     this.healthBarBackground.setScrollFactor(0);
 
     this.healthBar = scene.add.rectangle(
-      this.PADDING,
-      this.PADDING,
-      GAME_WIDTH - this.PADDING * 2,
-      this.HEALTH_BAR_HEIGHT,
-      0xff0000
+      this.PADDING + 1,
+      this.PADDING + 1,
+      (GAME_WIDTH - this.PADDING * 2 - 2) * (this.health / this.maxHealth),
+      this.HEALTH_BAR_HEIGHT - 2,
+      0xff4444
     );
     this.healthBar.setOrigin(0, 0);
     this.healthBar.setScrollFactor(0);
     this.healthBarText = scene.add.text(
       this.PADDING + 5,
-      this.PADDING + 2,
+      this.PADDING,
       this.health.toString(),
       {
         color: "#ffffff",
+        fontSize: "20px",
       }
     );
     this.healthBarText.setOrigin(0, 0);
@@ -64,8 +65,9 @@ export class Player {
   }
 
   private updateHealthBar() {
-    const healthPercentage = this.health / this.maxHealth;
-    const targetWidth = (GAME_WIDTH - this.PADDING * 2) * healthPercentage;
+
+    const targetWidth = (GAME_WIDTH - this.PADDING * 2 - 2)
+      * (this.health / this.maxHealth)
 
     // Create a smooth tween animation for the health bar
     this.sprite.scene.tweens.add({
