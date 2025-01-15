@@ -3,12 +3,15 @@ import { TILE_SIZE } from "../types/globalConstants";
 import { move } from "../utils/movements";
 import Player from "./Player";
 import Logger from "../utils/Logger";
+import LootManager from "../utils/LootManager";
 
 class Enemy {
   sprite: Phaser.Physics.Arcade.Sprite;
   health: number;
   isDead: boolean = false;
   logger: Logger;
+  lootManager: LootManager;
+  type: string;
 
   constructor(
     scene: Phaser.Scene,
@@ -22,7 +25,9 @@ class Enemy {
       .setOrigin(0)
       .setScale(TILE_SIZE / 32);
     this.health = health;
+    this.type = texture;
     this.logger = Logger.getInstance();
+    this.lootManager = new LootManager();
   }
 
   isTileOccupied(x: number, y: number, enemies: Enemy[]): boolean {
@@ -123,10 +128,49 @@ class Enemy {
     if (this.health <= 0) {
       this.logger.log("Enemy has been defeated!");
       this.isDead = true;
+      this.onDeath(this.sprite.scene);
       this.sprite.destroy();
     } else {
       this.logger.log(`Enemy Health: ${this.health}`);
     }
+  }
+
+  public onDeath(scene: Phaser.Scene): void {
+    const loot = this.lootManager.rollForLoot(this.type);
+    if (loot) {
+      // You could either auto-collect or create a visual item
+      this.lootManager.addToInventory(loot, scene);
+      // Or create a sprite at the enemy's position that the player can collect
+      console.log("Creating loot sprite");
+      this.createLootSprite(loot, scene);
+    }
+  }
+
+  private createLootSprite(item: EquipmentItem, scene: Phaser.Scene): void {
+    // Create a visual representation of the item
+    // This depends on your game's visual style
+    const sprite = scene.add.rectangle(
+      this.x,
+      this.y,
+      16,
+      16,
+      this.getLootColor(item.rarity)
+    );
+
+    // Make it interactive if you want players to manually collect it
+    sprite.setInteractive();
+    sprite.setData('item', item);
+  }
+
+  private getLootColor(rarity: string): number {
+    const colors = {
+      common: 0xFFFFFF,
+      uncommon: 0x00FF00,
+      rare: 0x0000FF,
+      epic: 0xFF00FF,
+      legendary: 0xFFD700
+    };
+    return colors[rarity] || colors.common;
   }
 
   async attack(player: Player) {
