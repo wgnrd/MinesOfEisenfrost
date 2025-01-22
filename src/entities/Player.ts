@@ -130,7 +130,9 @@ export class Player {
         yoyo: true,
         ease: "Power1",
         onComplete: () => {
-          const damage = Phaser.Math.Between(3, 8);
+          // Damage should be based on player's equipped weapon and +- 10% of its value
+          const weaponDamage = this.equipped.weapon?.damage || 0;
+          const damage = weaponDamage + Math.floor(Math.random() * (weaponDamage * 0.2) - weaponDamage * 0.1);
           this.logger.log(`Player dealt ${damage} damage to enemy.`);
           enemy.takeDamage(damage);
           resolve();
