@@ -16,21 +16,26 @@ import wall from '../assets/wall.png';
 import door from '../assets/door.png';
 import player from '../assets/player.png';
 import lightenemy from '../assets/lightEnemy.png';
+import { playerEquipped } from '../utils/defaultEquippment';
+import LootManager from "../utils/LootManager";
 
 export default class GameScene extends Phaser.Scene {
   private logger: Logger;
+  private lootManager: LootManager;
 
   constructor() {
     super('GameScene');
     this.logger = Logger.getInstance();
+    this.lootManager = LootManager.getInstance();
   }
 
   playerSprite: Phaser.Physics.Arcade.Sprite | undefined;
   keys: Phaser.Types.Input.Keyboard.CursorKeys | undefined;
   enemies: Enemy[] = [];
-  player: Player | undefined;
+  public player: Player | undefined;
   generator = new RoomGenerator(80, 60);
   playerActed = false;
+  isInventoryOpen = false;
 
   preload() {
     // Load room tiles
@@ -91,8 +96,22 @@ export default class GameScene extends Phaser.Scene {
       downRight: Phaser.Input.Keyboard.KeyCodes.N,
     }) as Phaser.Types.Input.Keyboard.CursorKeys;
 
-    // Center the camera on the player
-    // this.cameras.main.setBounds(0, 0, GAME_WIDTH, GAME_HEIGHT);
+    this.input.keyboard?.on('keydown-E', () => {
+      if (!this.isInventoryOpen) {
+        this.isInventoryOpen = true;
+        this.scene.launch('InventoryScene', this.player?.getInventory());
+      }
+    });
+
+    this.input.keyboard?.on('keydown-G', () => {
+      const { x, y } = this.player?.sprite || { x: 0, y: 0 };
+      this.lootManager.pickUpLoot(this.player!!, this);
+    })
+
+    this.events.on('inventory-closed', () => {
+      this.isInventoryOpen = false;
+    });
+
 
     // Initialize logger in top-left corner, but not at the very edge
     this.logger.initialize(this, 9999);
@@ -113,6 +132,9 @@ export default class GameScene extends Phaser.Scene {
 
   async update() {
     if (!this.player || !this.keys) {
+      return;
+    }
+    if (this.isInventoryOpen) {
       return;
     }
     const playerActed = this.player.handlePlayerTurn(
@@ -136,5 +158,7 @@ export default class GameScene extends Phaser.Scene {
 
   shutdown() {
     this.logger.destroy();
+    this.input.keyboard?.off('keydown-E');
+    this.events.off('resume');
   }
 }

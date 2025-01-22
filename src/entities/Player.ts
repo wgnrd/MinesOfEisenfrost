@@ -1,23 +1,92 @@
 import Phaser from "phaser";
-import { TILE_SIZE } from "../types/globalConstants";
+import { GAME_WIDTH, TILE_SIZE } from "../types/globalConstants";
 import Enemy from "./Enemy";
 import { move } from "../utils/movements";
 import Logger from "../utils/Logger";
+import { EquipmentItem, EquippedItems } from "../types/Equipment";
+import { playerEquipped } from "../utils/defaultEquippment";
 
 export class Player {
+  private healthBar: Phaser.GameObjects.Rectangle;
+  private healthBarBackground: Phaser.GameObjects.Rectangle;
+  private healthBarText: Phaser.GameObjects.Text;
   public sprite: Phaser.Physics.Arcade.Sprite;
-  public health: number = 10;
+  public health: number = 100;
   public maxHealth: number = 100;
   private logger: Logger;
   private turnCount: number = 0;
+  private readonly PADDING = 10;
+  private readonly HEALTH_BAR_HEIGHT = 20;
+
+  private equipped: EquippedItems = playerEquipped;
+  private inventory: EquipmentItem[] = [];
 
   constructor(sprite: Phaser.Physics.Arcade.Sprite) {
     this.sprite = sprite;
     this.logger = Logger.getInstance();
+
+    this.setupHealthBar();
+  }
+
+  private setupHealthBar() {
+    const scene = this.sprite.scene;
+
+    this.healthBarBackground = scene.add.rectangle(
+      this.PADDING,
+      this.PADDING,
+      GAME_WIDTH - this.PADDING * 2,
+      this.HEALTH_BAR_HEIGHT,
+      0x888888
+    );
+    this.healthBarBackground.setOrigin(0, 0);
+    this.healthBarBackground.setScrollFactor(0);
+
+    this.healthBar = scene.add.rectangle(
+      this.PADDING + 1,
+      this.PADDING + 1,
+      (GAME_WIDTH - this.PADDING * 2 - 2) * (this.health / this.maxHealth),
+      this.HEALTH_BAR_HEIGHT - 2,
+      0xff4444
+    );
+    this.healthBar.setOrigin(0, 0);
+    this.healthBar.setScrollFactor(0);
+    this.healthBarText = scene.add.text(
+      this.PADDING + 5,
+      this.PADDING,
+      this.health.toString(),
+      {
+        color: "#ffffff",
+        fontSize: "20px",
+      }
+    );
+    this.healthBarText.setOrigin(0, 0);
+    this.healthBarText.setScrollFactor(0);
+    this.updateHealthBar();
+  }
+
+  private updateHealthBar() {
+
+    const targetWidth = (GAME_WIDTH - this.PADDING * 2 - 2)
+      * (this.health / this.maxHealth)
+
+    // Create a smooth tween animation for the health bar
+    this.sprite.scene.tweens.add({
+      targets: this.healthBar,
+      width: targetWidth,
+      duration: 100, // Animation duration in milliseconds
+      ease: "Power1", // Easing function - you can try different ones like 'Cubic', 'Quad', etc.
+    });
+    this.healthBarText.setText(`${this.health}/${this.maxHealth}`);
   }
 
   takeDamage(amount: number) {
-    this.health -= amount;
+    const armorDefense = this.equipped.armor?.defense || 0;
+    const bootsDefense = this.equipped.boots?.defense || 0;
+    const ringDefense = this.equipped.ring?.defense || 0;
+    const totalDefense = armorDefense + bootsDefense + ringDefense;
+    const totalDamage = Math.max(0, amount - totalDefense);
+
+    this.health -= totalDamage;
 
     if (this.health <= 0) {
       this.health = 0; // Ensure health doesn't go below 0
@@ -36,25 +105,22 @@ export class Player {
         currentScene.scene.start("GameOver");
       });
     } else {
-      this.logger.log(`Player took ${amount} damage. Health: ${this.health}`);
+      this.logger.log(`Player took ${totalDamage} damage.`);
     }
+    this.updateHealthBar();
   }
 
   async attack(enemy: Enemy) {
-    // Store original position
-    const startX = this.sprite.x;
-    const startY = this.sprite.y;
+    const { x: startX, y: startY } = this.sprite;
+    const { x: enemyX, y: enemyY } = enemy.sprite;
 
-    // Calculate direction to enemy
-    const dx = enemy.sprite.x - startX;
-    const dy = enemy.sprite.y - startY;
+    const dx = enemyX - startX;
+    const dy = enemyY - startY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Normalize direction and calculate lunge position
     const normalizedDx = (dx / distance) * (TILE_SIZE / 2);
     const normalizedDy = (dy / distance) * (TILE_SIZE / 2);
 
-    // Perform the lunge animation
     await new Promise<void>((resolve) => {
       this.sprite.scene.tweens.add({
         targets: this.sprite,
@@ -64,8 +130,10 @@ export class Player {
         yoyo: true,
         ease: "Power1",
         onComplete: () => {
-          // Deal damage after animation
-          const damage = Math.floor(Math.random() * 6) + 3;
+          // Damage should be based on player's equipped weapon and +- 10% of its value
+          const weaponDamage = this.equipped.weapon?.damage || 0;
+          const damage = weaponDamage + Math.floor(Math.random() * (weaponDamage * 0.2) - weaponDamage * 0.1);
+          this.logger.log(`Player dealt ${damage} damage to enemy.`);
           enemy.takeDamage(damage);
           resolve();
         },
@@ -127,7 +195,7 @@ export class Player {
     }
 
     this.turnCount++;
-    if (this.turnCount % 20 === 0 && this.health < this.maxHealth) {
+    if (this.turnCount % 50 === 0 && this.health < this.maxHealth) {
       this.heal(this.maxHealth * 0.1);
     }
     const targetX = this.sprite.x + dx * TILE_SIZE;
@@ -160,7 +228,32 @@ export class Player {
     } else {
       this.health += amount;
     }
-    this.logger.log(`Player healed. Health: ${this.health}`);
+    this.logger.log(`Player healed for ${amount} health.`);
+    this.updateHealthBar();
+  }
+
+  getInventory() {
+    return {
+      inventory: this.inventory,
+      equipped: this.equipped
+    }
+  }
+
+  setInventory(data: { inventory: EquipmentItem[], equipped: EquippedItems }) {
+    this.inventory = data.inventory;
+    this.equipped = data.equipped;
+  }
+
+  addToInventory(item: EquipmentItem) {
+    this.logger.log(`Player picked up ${item.name}`);
+    this.inventory.push(item);
+  }
+
+  removeFromInventory(item: EquipmentItem) {
+    const index = this.inventory.findIndex((i) => i.id === item.id);
+    if (index !== -1) {
+      this.inventory.splice(index, 1);
+    }
   }
 }
 

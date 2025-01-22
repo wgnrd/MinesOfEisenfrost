@@ -3,12 +3,16 @@ import { TILE_SIZE } from "../types/globalConstants";
 import { move } from "../utils/movements";
 import Player from "./Player";
 import Logger from "../utils/Logger";
+import LootManager from "../utils/LootManager";
+import { EquipmentItem } from "../types/Equipment";
 
 class Enemy {
   sprite: Phaser.Physics.Arcade.Sprite;
   health: number;
   isDead: boolean = false;
   logger: Logger;
+  lootManager: LootManager;
+  type: string;
 
   constructor(
     scene: Phaser.Scene,
@@ -22,7 +26,9 @@ class Enemy {
       .setOrigin(0)
       .setScale(TILE_SIZE / 32);
     this.health = health;
+    this.type = texture;
     this.logger = Logger.getInstance();
+    this.lootManager = LootManager.getInstance();
   }
 
   isTileOccupied(x: number, y: number, enemies: Enemy[]): boolean {
@@ -123,10 +129,38 @@ class Enemy {
     if (this.health <= 0) {
       this.logger.log("Enemy has been defeated!");
       this.isDead = true;
+      this.onDeath(this.sprite.scene);
       this.sprite.destroy();
     } else {
-      this.logger.log(`Enemy took ${damage} damage. Health: ${this.health}`);
+      this.logger.log(`Enemy Health: ${this.health}`);
     }
+  }
+
+  public onDeath(scene: Phaser.Scene): void {
+    const { x, y } = this.sprite;
+    const loot = this.lootManager.rollForLoot(this.type, { x, y });
+    if (loot) {
+      this.createLootSprite(loot, scene);
+    }
+  }
+
+  private createLootSprite(item: EquipmentItem, scene: Phaser.Scene): void {
+    // Create a visual representation of the item
+    // This depends on your game's visual style
+    const itemColor = this.lootManager.getItemColor(item.type);
+    const itemRarity = this.lootManager.getRarityColor(item.rarity);
+    console.log(`Creating loot itemColor: ${itemColor}, itemRarity: ${itemRarity}`);
+    const sprite = scene.add.rectangle(
+      this.sprite.x,
+      this.sprite.y,
+      16,
+      16,
+      itemColor
+    ).setStrokeStyle(2, itemRarity);
+
+    // Make it interactive if you want players to manually collect it
+    // sprite.setInteractive();
+    sprite.setData('item', item);
   }
 
   async attack(player: Player) {
