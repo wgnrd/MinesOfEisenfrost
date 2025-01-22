@@ -246,6 +246,17 @@ export class Player {
     this.inventory = data.inventory;
     this.equipped = data.equipped;
   }
+
+  addToInventory(item: EquipmentItem) {
+    this.inventory.push(item);
+  }
+
+  removeFromInventory(item: EquipmentItem) {
+    const index = this.inventory.findIndex((i) => i.id === item.id);
+    if (index !== -1) {
+      this.inventory.splice(index, 1);
+    }
+  }
 }
 
 export default Player;

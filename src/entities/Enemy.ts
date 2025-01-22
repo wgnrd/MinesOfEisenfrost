@@ -27,7 +27,7 @@ class Enemy {
     this.health = health;
     this.type = texture;
     this.logger = Logger.getInstance();
-    this.lootManager = new LootManager();
+    this.lootManager = LootManager.getInstance();
   }
 
   isTileOccupied(x: number, y: number, enemies: Enemy[]): boolean {
@@ -136,12 +136,10 @@ class Enemy {
   }
 
   public onDeath(scene: Phaser.Scene): void {
-    const loot = this.lootManager.rollForLoot(this.type);
+    const { x, y } = this.sprite;
+    const loot = this.lootManager.rollForLoot(this.type, { x, y });
     if (loot) {
-      // You could either auto-collect or create a visual item
-      this.lootManager.addToInventory(loot, scene);
-      // Or create a sprite at the enemy's position that the player can collect
-      console.log("Creating loot sprite");
+      console.log("Creating loot sprite at position:", x, y);
       this.createLootSprite(loot, scene);
     }
   }
@@ -150,8 +148,8 @@ class Enemy {
     // Create a visual representation of the item
     // This depends on your game's visual style
     const sprite = scene.add.rectangle(
-      this.x,
-      this.y,
+      this.sprite.x,
+      this.sprite.y,
       16,
       16,
       this.getLootColor(item.rarity)

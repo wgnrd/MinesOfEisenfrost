@@ -17,13 +17,16 @@ import door from '../assets/door.png';
 import player from '../assets/player.png';
 import lightenemy from '../assets/lightEnemy.png';
 import { playerEquipped } from '../utils/defaultEquippment';
+import LootManager from "../utils/LootManager";
 
 export default class GameScene extends Phaser.Scene {
   private logger: Logger;
+  private lootManager: LootManager;
 
   constructor() {
     super('GameScene');
     this.logger = Logger.getInstance();
+    this.lootManager = LootManager.getInstance();
   }
 
   playerSprite: Phaser.Physics.Arcade.Sprite | undefined;
@@ -100,10 +103,15 @@ export default class GameScene extends Phaser.Scene {
       }
     });
 
-    // Listen for the custom event instead of 'resume'
+    this.input.keyboard?.on('keydown-G', () => {
+      const { x, y } = this.player?.sprite || { x: 0, y: 0 };
+      this.lootManager.pickUpLoot(this.player!!, this);
+    })
+
     this.events.on('inventory-closed', () => {
       this.isInventoryOpen = false;
     });
+
 
     // Initialize logger in top-left corner, but not at the very edge
     this.logger.initialize(this, 9999);
