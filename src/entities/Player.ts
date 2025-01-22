@@ -111,20 +111,16 @@ export class Player {
   }
 
   async attack(enemy: Enemy) {
-    // Store original position
-    const startX = this.sprite.x;
-    const startY = this.sprite.y;
+    const { x: startX, y: startY } = this.sprite;
+    const { x: enemyX, y: enemyY } = enemy.sprite;
 
-    // Calculate direction to enemy
-    const dx = enemy.sprite.x - startX;
-    const dy = enemy.sprite.y - startY;
+    const dx = enemyX - startX;
+    const dy = enemyY - startY;
     const distance = Math.sqrt(dx * dx + dy * dy);
 
-    // Normalize direction and calculate lunge position
     const normalizedDx = (dx / distance) * (TILE_SIZE / 2);
     const normalizedDy = (dy / distance) * (TILE_SIZE / 2);
 
-    // Perform the lunge animation
     await new Promise<void>((resolve) => {
       this.sprite.scene.tweens.add({
         targets: this.sprite,
@@ -134,8 +130,7 @@ export class Player {
         yoyo: true,
         ease: "Power1",
         onComplete: () => {
-          // Deal damage after animation
-          const damage = Math.floor(Math.random() * 6) + 3;
+          const damage = Phaser.Math.Between(3, 8);
           this.logger.log(`Player dealt ${damage} damage to enemy.`);
           enemy.takeDamage(damage);
           resolve();
@@ -248,6 +243,7 @@ export class Player {
   }
 
   addToInventory(item: EquipmentItem) {
+    this.logger.log(`Player picked up ${item.name}`);
     this.inventory.push(item);
   }
 

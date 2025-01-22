@@ -4,6 +4,7 @@ import { move } from "../utils/movements";
 import Player from "./Player";
 import Logger from "../utils/Logger";
 import LootManager from "../utils/LootManager";
+import { EquipmentItem } from "../types/Equipment";
 
 class Enemy {
   sprite: Phaser.Physics.Arcade.Sprite;
@@ -139,7 +140,6 @@ class Enemy {
     const { x, y } = this.sprite;
     const loot = this.lootManager.rollForLoot(this.type, { x, y });
     if (loot) {
-      console.log("Creating loot sprite at position:", x, y);
       this.createLootSprite(loot, scene);
     }
   }
@@ -147,28 +147,20 @@ class Enemy {
   private createLootSprite(item: EquipmentItem, scene: Phaser.Scene): void {
     // Create a visual representation of the item
     // This depends on your game's visual style
+    const itemColor = this.lootManager.getItemColor(item.type);
+    const itemRarity = this.lootManager.getRarityColor(item.rarity);
+    console.log(`Creating loot itemColor: ${itemColor}, itemRarity: ${itemRarity}`);
     const sprite = scene.add.rectangle(
       this.sprite.x,
       this.sprite.y,
       16,
       16,
-      this.getLootColor(item.rarity)
-    );
+      itemColor
+    ).setStrokeStyle(2, itemRarity);
 
     // Make it interactive if you want players to manually collect it
-    sprite.setInteractive();
+    // sprite.setInteractive();
     sprite.setData('item', item);
-  }
-
-  private getLootColor(rarity: string): number {
-    const colors = {
-      common: 0xFFFFFF,
-      uncommon: 0x00FF00,
-      rare: 0x0000FF,
-      epic: 0xFF00FF,
-      legendary: 0xFFD700
-    };
-    return colors[rarity] || colors.common;
   }
 
   async attack(player: Player) {

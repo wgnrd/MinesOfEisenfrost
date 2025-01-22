@@ -54,6 +54,28 @@ export default class LootManager {
 
     return null;
   }
+
+  public getRarityColor(rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary'): number {
+    const colors: Record<'common' | 'uncommon' | 'rare' | 'epic' | 'legendary', number> = {
+      common: 0xFFFFFF,
+      uncommon: 0x00FF00,
+      rare: 0x0000FF,
+      epic: 0xFF00FF,
+      legendary: 0xFFD700
+    };
+    return colors[rarity] || colors.common;
+  }
+
+  public getItemColor(type: EquipmentItem['type']): number {
+    const colors: Record<EquipmentItem['type'], number> = {
+      weapon: 0xff0000,
+      armor: 0x00ff00,
+      ring: 0x0000ff,
+      boots: 0xffff00
+    };
+    return colors[type];
+  }
+
   public pickUpLoot(player: Player, scene: Phaser.Scene): void {
     const playerPosition = { x: player.sprite.x, y: player.sprite.y };
 

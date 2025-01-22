@@ -1,3 +1,4 @@
+import LootManager from '../utils/LootManager';
 import { EquipmentItem, EquippedItems, InventoryData } from '../types/Equipment';
 import GameScene from './GameScene';
 
@@ -13,6 +14,7 @@ export default class InventoryScene extends Phaser.Scene {
   private selectedIndex: number = 0;
   private isEquipmentSelected: boolean = false;
   private selectedEquipSlot: number = 0;
+  private lootManager: LootManager = new LootManager();
   private readonly equipmentSlots: Array<keyof EquippedItems> = ['weapon', 'armor', 'ring', 'boots'];
 
   private highlights: {
@@ -30,6 +32,7 @@ export default class InventoryScene extends Phaser.Scene {
   }
 
   init(data: InventoryData): void {
+    this.lootManager = LootManager.getInstance();
     const gameScene = this.scene.get('GameScene') as GameScene;
     if (gameScene.player) {
       const playerData = gameScene.player.getInventory();
@@ -131,18 +134,15 @@ export default class InventoryScene extends Phaser.Scene {
   }
 
   private createItemSprite(x: number, y: number, item: EquipmentItem): Phaser.GameObjects.Rectangle {
-    return this.add.rectangle(x, y, 40, 40, this.getItemColor(item.type));
+    // Add rectangle with border or rarity
+    const itemColor = this.lootManager.getItemColor(item.type);
+    const itemRarity = this.lootManager.getRarityColor(item.rarity);
+    const itemSprite = this.add.rectangle(x, y, 40, 40, itemColor)
+      .setOrigin(0.5)
+      .setStrokeStyle(2, itemRarity);
   }
 
-  private getItemColor(type: EquipmentItem['type']): number {
-    const colors: Record<EquipmentItem['type'], number> = {
-      weapon: 0xff0000,
-      armor: 0x00ff00,
-      ring: 0x0000ff,
-      boots: 0xffff00
-    };
-    return colors[type];
-  }
+
 
   private setupKeyboardControls(): void {
     if (this.keyboardControlsSet) {
